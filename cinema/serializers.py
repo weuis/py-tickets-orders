@@ -135,7 +135,9 @@ class OrderSerializer(serializers.ModelSerializer):
                 Ticket.objects.create(order=order, **ticket)
         except Exception as e:
             transaction.set_rollback(True)
-            raise serializers.ValidationError(f"Error creating tickets: {str(e)}")
+            raise serializers.ValidationError(
+                f"Error creating tickets: {str(e)}"
+            )
 
         return order
 

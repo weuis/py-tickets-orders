@@ -1,5 +1,9 @@
 from rest_framework import viewsets
-
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import (
+    SessionAuthentication,
+    TokenAuthentication
+)
 from rest_framework.pagination import PageNumberPagination
 
 from cinema.models import (
@@ -91,9 +95,6 @@ class OrderPagination(PageNumberPagination):
     page_size = 1
     page_size_query_param = "page_size"
 
-
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.authentication import SessionAuthentication, TokenAuthentication
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
