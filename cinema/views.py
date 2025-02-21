@@ -92,9 +92,14 @@ class OrderPagination(PageNumberPagination):
     page_size_query_param = "page_size"
 
 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import SessionAuthentication, TokenAuthentication
+
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     pagination_class = OrderPagination
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action in ("list", "retrieve"):
@@ -102,13 +107,11 @@ class OrderViewSet(viewsets.ModelViewSet):
         return OrderSerializer
 
     def get_queryset(self):
-        queryset = self.queryset
-        if self.action in ("list", "retrieve"):
-            queryset = queryset.prefetch_related(
-                "tickets__movie_session__movie",
-                "tickets__movie_session__cinema_hall"
-            )
-        return queryset.filter(user=self.request.user)
+        """Ensure only authenticated users can access their orders."""
+        return Order.objects.filter(user=self.request.user).prefetch_related(
+            "tickets__movie_session__movie",
+            "tickets__movie_session__cinema_hall"
+        )
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

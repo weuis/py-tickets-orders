@@ -127,10 +127,16 @@ class OrderSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
-        tickets = validated_data.pop("tickets")
+        tickets = validated_data.pop("tickets", [])
         order = Order.objects.create(**validated_data)
-        for ticket in tickets:
-            Ticket.objects.create(order=order, **ticket)
+
+        try:
+            for ticket in tickets:
+                Ticket.objects.create(order=order, **ticket)
+        except Exception as e:
+            transaction.set_rollback(True)
+            raise serializers.ValidationError(f"Error creating tickets: {str(e)}")
+
         return order
 
 
